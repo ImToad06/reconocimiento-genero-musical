@@ -248,16 +248,16 @@ async function analyzeAudio(audioUrl: string, startTimeSeconds: number): Promise
   const numFreqBins = inputShape[2]
 
   // Remuestrear a la tasa del modelo si es necesario
-  let finalData = paddedData
+  let finalData: Float32Array = paddedData
   if (sampleRate !== modelSampleRate) {
     finalData = resampleAudio(paddedData, sampleRate, modelSampleRate)
   }
 
   // Generar espectrograma que coincida con las expectativas del modelo
-  const spectrogram = generateSpectrogram(finalData, modelSampleRate, fftSize, numFrames, numFreqBins)
+  const spectrogram = generateSpectrogram(finalData, modelSampleRate, fftSize, numFrames!, numFreqBins!)
 
   // Validar tamaño
-  const expectedElements = numFrames * numFreqBins * inputShape[3]
+  const expectedElements = numFrames! * numFreqBins! * inputShape[3]!
 
   if (spectrogram.length !== expectedElements) {
     console.warn(`Tamaño de espectrograma no coincide: obtuve ${spectrogram.length}, esperaba ${expectedElements}`)
@@ -265,7 +265,7 @@ async function analyzeAudio(audioUrl: string, startTimeSeconds: number): Promise
     adjusted.set(spectrogram.slice(0, Math.min(spectrogram.length, expectedElements)))
 
     const result = await recognizer!.recognize(adjusted)
-    const scores = Array.from(result.scores as number[])
+    const scores = Array.from(result.scores as unknown as number[])
 
     return labels.map((label, i) => ({
       genre: label,
@@ -275,7 +275,7 @@ async function analyzeAudio(audioUrl: string, startTimeSeconds: number): Promise
 
   // Usar el reconocedor para clasificar
   const result = await recognizer!.recognize(spectrogram)
-  const scores = Array.from(result.scores as number[])
+  const scores = Array.from(result.scores as unknown as number[])
 
   return labels.map((label, i) => ({
     genre: label,
@@ -301,7 +301,7 @@ function resampleAudio(input: Float32Array, inputRate: number, outputRate: numbe
 
 function generateSpectrogram(
   audioData: Float32Array,
-  sampleRate: number,
+  _sampleRate: number,
   fftSize: number,
   numFrames: number,
   numFreqBins: number
